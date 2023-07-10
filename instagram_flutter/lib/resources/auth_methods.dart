@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:instagram_flutter/models/user.dart' as model;
 import 'package:instagram_flutter/resources/storage_methods.dart';
 // import 'package:flutter/material.dart';
 
@@ -34,16 +35,40 @@ class AuthMethods {
             .uploadImageToStorage('profilePics', file, false);
 
         // add user to our database
-        await _firestore.collection('users').doc(cred.user!.uid).set({
-          'username': username,
-          'uid': cred.user!.uid,
-          'email': email,
-          'bio': bio,
-          'followers': [],
-          'following': [],
-          'photoUrl': photoUrl,
-        });
+
+        model.User user = model.User(
+            email: email,
+            uid: cred.user!.uid,
+            photoUrl: photoUrl,
+            username: username,
+            bio: bio,
+            followers: [],
+            following: []);
+
+        await _firestore.collection('users').doc(cred.user!.uid).set(
+              user.toJson(),
+            );
         res = "success";
+      }
+    } catch (err) {
+      res = err.toString();
+    }
+    return res;
+  }
+
+  //logging in User
+  Future<String> loginUser({
+    required String email,
+    required String password,
+  }) async {
+    String res = "Some error occured";
+    try {
+      if (email.isNotEmpty || password.isNotEmpty) {
+        await _auth.signInWithEmailAndPassword(
+            email: email, password: password);
+        res = "Success!";
+      } else {
+        res = "Please enter all the Fields";
       }
     } catch (err) {
       res = err.toString();

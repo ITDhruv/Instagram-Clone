@@ -1,12 +1,14 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:instagram_flutter/providers/user_provider.dart';
-import 'package:instagram_flutter/utils/colors.dart';
-import 'package:instagram_flutter/utils/utils.dart';
+import '../providers/user_provider.dart';
+import '../utils/colors.dart';
+import '../utils/utils.dart';
 import 'package:provider/provider.dart';
-
 import '../models/user.dart';
+import '../resources/firestore_methods.dart';
 
 class AddPostScreen extends StatefulWidget {
   const AddPostScreen({super.key});
@@ -18,6 +20,36 @@ class AddPostScreen extends StatefulWidget {
 class _AddPostScreenState extends State<AddPostScreen> {
   Uint8List? _file;
   final TextEditingController _descriptionController = TextEditingController();
+  bool _isLoading = false;
+
+  void postImage(
+    String uid,
+    String username,
+    String profImage,
+  ) async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      String res = await FirestoreMethods().uploadPost(
+          _descriptionController.text, _file!, uid, username, profImage);
+
+      if (res == "success") {
+        setState(() {
+          _isLoading = false;
+        });
+        showSnackBar('Posted!', context);
+        clearImage();
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+        showSnackBar(res, context);
+      }
+    } catch (e) {
+      showSnackBar(e.toString(), context);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +96,11 @@ class _AddPostScreenState extends State<AddPostScreen> {
           });
     }
 
+    void dispose() {
+      super.dispose();
+      _descriptionController.dispose();
+    }
+
     return _file == null
         ? Center(
             child: IconButton(
@@ -75,13 +112,12 @@ class _AddPostScreenState extends State<AddPostScreen> {
             appBar: AppBar(
               backgroundColor: mobileBackgroundColor,
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {},
-              ),
+                  icon: const Icon(Icons.arrow_back), onPressed: clearImage),
               title: const Text('Post to'),
               actions: [
                 TextButton(
-                    onPressed: () {},
+                    onPressed: () =>
+                        postImage(user.uid, user.username, user.photoUrl),
                     child: const Text(
                       'Post',
                       style: TextStyle(
@@ -93,6 +129,12 @@ class _AddPostScreenState extends State<AddPostScreen> {
             ),
             body: Column(
               children: [
+                _isLoading
+                    ? const LinearProgressIndicator()
+                    : const Padding(
+                        padding: EdgeInsets.only(top: 0),
+                      ),
+                const Divider(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,5 +176,11 @@ class _AddPostScreenState extends State<AddPostScreen> {
               ],
             ),
           );
+  }
+
+  void clearImage() {
+    setState(() {
+      _file = null;
+    });
   }
 }

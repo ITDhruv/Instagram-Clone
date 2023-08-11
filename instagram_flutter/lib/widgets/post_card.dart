@@ -1,9 +1,11 @@
 // ignore_for_file: deprecated_member_use, prefer_typing_uninitialized_variables, library_prefixes
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:instagram_flutter/models/user.dart' as User;
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_flutter/resources/firestore_methods.dart';
 import 'package:instagram_flutter/screens/comment_screen.dart';
+import 'package:instagram_flutter/utils/utils.dart';
 import 'package:instagram_flutter/widgets/like_animation.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +25,27 @@ class PostCard extends StatefulWidget {
 
 class _PostCardState extends State<PostCard> {
   bool isLikeAnimating = false;
+  int commentLen = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    getComments();
+  }
+
+  void getComments() async {
+    try {
+      QuerySnapshot snap = await FirebaseFirestore.instance
+          .collection('posts')
+          .doc(widget.snap['postId'])
+          .collection('comments')
+          .get();
+      commentLen = snap.docs.length;
+    } catch (e) {
+      showSnackBar(e.toString(), context);
+    }
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +98,11 @@ class _PostCardState extends State<PostCard> {
                           'Delete',
                         ]
                             .map((e) => InkWell(
-                                  onTap: () {},
+                                  onTap: () async {
+                                    FirestoreMethods()
+                                        .DeletePost(widget.snap['postId']);
+                                    Navigator.of(context).pop();
+                                  },
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 12,
@@ -231,9 +258,7 @@ class _PostCardState extends State<PostCard> {
                         vertical: 4,
                       ),
                       child: Text(
-                        DateFormat.yMMMd().format(
-                          widget.snap['datePublished'].toDate(),
-                        ),
+                        'View all $commentLen comments',
                         style: TextStyle(
                           fontSize: 16,
                           color: secondaryColor,
@@ -245,8 +270,10 @@ class _PostCardState extends State<PostCard> {
                     padding: const EdgeInsets.symmetric(
                       vertical: 4,
                     ),
-                    child: const Text(
-                      '09/08/2023',
+                    child: Text(
+                      DateFormat.yMMMd().format(
+                        widget.snap['datePublished'].toDate(),
+                      ),
                       style: TextStyle(
                         fontSize: 16,
                         color: secondaryColor,

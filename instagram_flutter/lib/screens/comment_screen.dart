@@ -1,4 +1,6 @@
 // import 'package:firebase_auth/firebase_auth.dart';
+// ignore_for_file: library_prefixes, prefer_typing_uninitialized_variables
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_flutter/models/user.dart' as User;

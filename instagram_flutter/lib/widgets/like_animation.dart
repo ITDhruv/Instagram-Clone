@@ -64,6 +64,7 @@ class _LikeAnimationState extends State<LikeAnimation>
     controller.dispose();
   }
 
+  @override
   Widget build(BuildContext context) {
     return ScaleTransition(
       scale: scale,

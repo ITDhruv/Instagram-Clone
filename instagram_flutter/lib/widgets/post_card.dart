@@ -1,10 +1,11 @@
-// ignore_for_file: deprecated_member_use, prefer_typing_uninitialized_variables, library_prefixes
+// ignore_for_file: deprecated_member_use, prefer_typing_uninitialized_variables, library_prefixes, use_build_context_synchronously
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:instagram_flutter/models/user.dart' as User;
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_flutter/resources/firestore_methods.dart';
 import 'package:instagram_flutter/screens/comment_screen.dart';
+import 'package:instagram_flutter/utils/global_variables.dart';
 import 'package:instagram_flutter/utils/utils.dart';
 import 'package:instagram_flutter/widgets/like_animation.dart';
 import 'package:intl/intl.dart';
@@ -50,8 +51,15 @@ class _PostCardState extends State<PostCard> {
   @override
   Widget build(BuildContext context) {
     final User.User user = Provider.of<Userprovider>(context).getUser;
+    final width = MediaQuery.of(context).size.width;
+
     return Container(
-      color: mobileBackgroundColor,
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: width > webScreenSize ? secondaryColor : mobileBackgroundColor,
+        ),
+        color: mobileBackgroundColor,
+      ),
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Column(
         children: [
@@ -70,7 +78,7 @@ class _PostCardState extends State<PostCard> {
               ),
               Expanded(
                 child: Padding(
-                    padding: EdgeInsets.only(left: 8),
+                    padding: const EdgeInsets.only(left: 8),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -144,8 +152,6 @@ class _PostCardState extends State<PostCard> {
                   duration: const Duration(milliseconds: 200),
                   opacity: isLikeAnimating ? 1 : 0,
                   child: LikeAnimation(
-                    child: const Icon(Icons.favorite,
-                        color: Colors.white, size: 120),
                     isAnimating: isLikeAnimating,
                     duration: const Duration(
                       milliseconds: 400,
@@ -155,6 +161,8 @@ class _PostCardState extends State<PostCard> {
                         isLikeAnimating = false;
                       });
                     },
+                    child: const Icon(Icons.favorite,
+                        color: Colors.white, size: 120),
                   ),
                 ),
               ],
@@ -259,7 +267,7 @@ class _PostCardState extends State<PostCard> {
                       ),
                       child: Text(
                         'View all $commentLen comments',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
                           color: secondaryColor,
                         ),
@@ -274,7 +282,7 @@ class _PostCardState extends State<PostCard> {
                       DateFormat.yMMMd().format(
                         widget.snap['datePublished'].toDate(),
                       ),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
                         color: secondaryColor,
                       ),
